@@ -42,7 +42,7 @@ class Lexer:
         self.text = text  # 將輸入的字串賦予text
         self.pos = 0      # 將最開始的字串位置設定為0
         self.current_char = self.text[self.pos] # 將current_char設定為text目前的pos位置
-        self.line = 1
+        self.line = 1 
         # Ex: int a 
         # self.text = "int a"
         # self.pos = 0
@@ -162,7 +162,7 @@ lexer = Lexer(text)
 token = lexer.get_next_token()
 index = 0
 print(text)
-while token.type != 'EOF':
+while token.type != 'EOF': # 不能使用 Token.EOF 會找不到
     print(f"{index}:{token.value}")
     token = lexer.get_next_token()
     index += 1
@@ -322,4 +322,31 @@ int main()
 77:;
 78:}
 ```
+### 結語
+```python!
+當初在執行上面的程式時，其實一直有出現錯誤
+不是程式碼停不下來不然就是顯示錯誤
+type object 'Token' has no attribute 'EOF'
+其中我還發現一個隱藏錯誤在self.line那邊。
+-
+解決方式:
+1.type object 'Token' has no attribute 'EOF'
+其實這個問題我處理的最久
+因為在Token那邊我明明就有設定EOF的type
+但卻一直顯示錯誤，試過很多方式之後才發現要用'EOF'的方式去呼叫他
 
+2. 程式碼停不下來
+這個大概是第二久的
+原本以為是因為Token 'EOF'那邊的問題
+但仔細去看錯誤訊息後發現程式碼試一直停留在get_next_token()
+仔細去看之後才發現是這邊出了問題
+  if self.current_char == ';':
+    self.next()
+    return Token(SEMI, ';')
+  self.next() --> 原本沒有加，導致程式一直困在while的永久迴圈
+# 如果current_char = None 則回傳EOF
+return Token(EOF, None)
+
+3. self.line
+這個就比較容易解決了，因為當初在設計的時候並沒有設訂self.line的初始值以及他後續的增加方式，所以在number函式return Token(INT, int(result), self.line)的時候就有可能出現問題
+```
